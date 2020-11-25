@@ -1,17 +1,18 @@
 import React from 'react';
 import axios from "axios"
 import Joke from "./Joke"
+import ClassBasedJoke from './ClassBasedJoke'
 
 class ClassBasedJokeList extends React.Component {
+    static defaultProps = {
+        numJokesToGet: 10
+    }
+
     constructor(props) {
         super(props);
         this.state = { jokes: []};
         this.generateNewJokes = this.generateNewJokes.bind(this)
         this.vote = this.vote.bind(this)
-    }
-
-    addJoke = (j) => {
-        this.setState({ jokes: j})
     }
 
     async getJokes() {
@@ -32,7 +33,7 @@ class ClassBasedJokeList extends React.Component {
                     console.error('duplicate found!');
                 }
             }
-            this.addJoke(j);
+            this.setState({ jokes: j });
         } catch (e) {
             console.log(e)
         }
@@ -51,14 +52,13 @@ class ClassBasedJokeList extends React.Component {
     }
 
     vote(id, delta) {
-        this.setState(allJokes => allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta }: j))
-        );
+        this.setState(st => ({ jokes: st.jokes.map(j => j.id === id ? { ...j, votes: j.votes + delta} : j)
+        }));
     }
 
     
 
     render() {
-        if (this.state.jokes.length) {
             let sortedJokes = [...this.state.jokes].sort((a, b) => b.votes - a.votes);
 
             return (
@@ -66,20 +66,19 @@ class ClassBasedJokeList extends React.Component {
                     <button className="JokeList-getmore" onClick={this.generateNewJokes}>
                     Get New Jokes
                     </button>
-
                     {sortedJokes.map(j => (
-                        <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={this.vote} />
+                        <ClassBasedJoke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={this.vote} />
                     ))}
+
+                    {sortedJokes.length < this.props.numJokesToGet ? (
+                        <div className="loading">
+                            <p>Loading!</p>
+                        </div>
+                    ) : null}
                 </div>
 
-        )} else {
-            return null
-        }
+        )
     }
-}
-
-ClassBasedJokeList.defaultProps = {
-    numJokesToGet: 10
 }
 
 export default ClassBasedJokeList;
